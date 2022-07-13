@@ -3,16 +3,14 @@ const app = express();
 const mongoose = require('mongoose');
 const userRoutes = require('./routes/user');
 
-mongoose.connect(//??????,
+mongoose.connect(process.env.MONGO_PSWD, 
   { useNewUrlParser: true,
     useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))
   .catch(() => console.log('Connexion à MongoDB échouée !'));
 
-
 app.use(express.json());
 
-// CORS
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
@@ -20,6 +18,5 @@ app.use((req, res, next) => {
     next();
 });
 
-
-
+app.use('/api/auth', userRoutes);
 module.exports = app;
