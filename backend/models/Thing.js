@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+
 const thingSchema = mongoose.Schema({
   userId:        {type: String, required: true }, 
   name:          {type: String, required: true }, 
@@ -9,7 +10,8 @@ const thingSchema = mongoose.Schema({
   heat:          {type: Number, required: true }, 
   likes:         {type: Number, required: true, default : 0 }, 
   dislikes:      {type: Number, required: true, default : 0 }, 
-  usersLiked:    {type: Array, required:true  }, // je demande un array car il y a plusieurs string
+  usersLiked:    {type: Array, required:true  }, 
   usersDisliked: {type: Array, required:true },
 });
+
 module.exports = mongoose.model('Thing', thingSchema);
