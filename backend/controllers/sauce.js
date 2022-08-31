@@ -40,7 +40,7 @@ const modifySauce = (req, res, next) => {
       imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     } : { ...req.body };
   Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
-    .then(() => res.status(200).json({ message: 'Objet modifié !' }))
+    .then(() => res.status(200).json({ message: 'Sauce modifié !' }))
     .catch(error => res.status(400).json({ error }));
 };
 
@@ -51,7 +51,7 @@ const deleteSauce = (req, res, next) => {
       const filename = sauce.imageUrl.split('/images/')[1];
       fs.unlink(`images/${filename}`, () => {
         Sauce.deleteOne({ _id: req.params.id })
-          .then(() => res.status(200).json({ message: 'Objet supprimé !' }))
+          .then(() => res.status(200).json({ message: 'Sauce supprimé !' }))
           .catch(error => res.status(400).json({ error }));
       });
     })
@@ -73,4 +73,52 @@ const getAllStuff = (req, res, next) => {
   );
 };
 
-module.exports={createSauce, getOneSauce, modifySauce, deleteSauce, getAllStuff};
+const likeSauce = (req, res) => { //creation de la const likeSauce pour avoir un systeme de like et dislike
+
+  if (req.body.like === 1) { // si l'utilisateur met un like
+    Sauce.findOneAndUpdate(
+      {_id: req.params.id},
+      {
+        $inc: {likes: 1},
+        $push: {usersLiked: req.body.userId}
+      })
+      .then(() => res.status(200).json({ message: '1 like en plus !' }))
+      .catch(error => res.status(400).json({ error }))
+  } else if (req.body.like === -1) { // si l'utilisateur met un dislike
+    Sauce.findOneAndUpdate(
+      {_id: req.params.id},
+      {
+        $inc: {dislikes: 1},
+        $push: {usersDisliked: req.body.userId}
+      })
+      .then(() => res.status(200).json({ message: '1 dislike en plus !' }))
+      .catch(error => res.status(400).json({ error }))
+  } else { // si l'utilisateur enleve son like
+    Sauce.findOne({_id: req.params.id})
+      .then(resultat => {
+        if (resultat.usersLiked.includes(req.body.userId)) {
+          Sauce.findOneAndUpdate(
+            {_id: req.params.id},
+            {
+              $inc: {likes: -1},
+              $pull: {usersLiked: req.body.userId}
+            })
+            .then(() => res.status(200).json({ message: '1 like en moins !' }))
+            .catch(error => res.status(400).json({ error }))
+        }
+        else if (resultat.usersDisliked.includes(req.body.userId)) { // si l'utilisateur enleve son dislike
+          Sauce.findOneAndUpdate(
+            { _id: req.params.id },
+            {
+              $inc: {dislikes: -1},
+              $pull: {usersDisliked: req.body.userId}
+            })
+            .then(() => res.status(200).json({ message: '1 dislike en moins !' }))
+            .catch(error => res.status(400).json({ error }))
+        }
+      })
+    }
+}
+
+//j'exporte mes const pour pouvoir les utiliser par la suite
+module.exports={createSauce, getOneSauce, modifySauce, deleteSauce, getAllStuff, likeSauce};
