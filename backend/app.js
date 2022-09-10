@@ -1,10 +1,14 @@
 require('dotenv').config()
 const express = require('express');
+const helmet = require("helmet"); 
 const app = express();
 const mongoose = require('mongoose');
+const sauceRoutes = require('./routes/sauce');
 const path = require('path'); //pour les images je crois qu'il ne me reste plus que ça
 const userRoutes = require('./routes/user');
-const sauceRoutes = require('./routes/sauce');
+
+
+
 
 mongoose.connect(process.env.MONGO_USER, //connexion a mongoDB avec dotenv
   { useNewUrlParser: true,
@@ -21,7 +25,9 @@ app.use((req, res, next) => { // header pour faire le lien entre le 3000 et le 4
     next();
 });
 
+app.use(helmet({crossOriginResourcePolicy: false}));
 app.use('/api/auth', userRoutes);
 app.use('/api/sauces', sauceRoutes);
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 module.exports = app;
