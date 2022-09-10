@@ -39,21 +39,35 @@ const modifySauce = (req, res, next) => {
       ...JSON.parse(req.body.sauce),
       imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     } : { ...req.body };
-  Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
-    .then(() => res.status(200).json({ message: 'Sauce modifié !' }))
-    .catch(error => res.status(400).json({ error }));
-};
+
+    Sauce.findOne({ _id: req.params.id })
+        .then(sauce => {
+          console.log(req.body.userId);
+          if (req.body.userId !== process.userId)  {
+            return res.status(403).json({message : "Vous n'avez pas la permission"});
+          } else{
+    Sauce.updateOne({ _id: req.params.id }, {...sauceObject, _id: req.params.id })
+      .then(res.status(200).json({ message: "Sauce modifiée" }))
+      .catch(error => res.status(400).json({ error }))
+}});
+}
 
 //Supprime la sauce en question
 const deleteSauce = (req, res, next) => {
+  const userId = req.body.userId;
   Sauce.findOne({ _id: req.params.id })
     .then(sauce => {
-      const filename = sauce.imageUrl.split('/images/')[1];
-      fs.unlink(`images/${filename}`, () => {
-        Sauce.deleteOne({ _id: req.params.id })
-          .then(() => res.status(200).json({ message: 'Sauce supprimé !' }))
-          .catch(error => res.status(400).json({ error }));
-      });
+      console.log(req.body.userId);
+      if (userId !== process.userId)  {
+        return res.status(403).json({message : "Vous n'avez pas la permission"});
+      } else{
+        const filename = sauce.imageUrl.split('/images/')[1];
+        fs.unlink(`images/${filename}`, () => {
+          Sauce.deleteOne({ _id: req.params.id })
+            .then(() => res.status(200).json({ message: 'Objet supprimé !' }))
+            .catch(error => res.status(400).json({ error }));
+        });
+      }
     })
     .catch(error => res.status(500).json({ error }));
 };
